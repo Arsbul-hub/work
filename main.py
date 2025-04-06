@@ -4,6 +4,25 @@ import random
 
 sheets = pd.read_excel('data.xlsx', sheet_name=None)
 out = []
+
+
+def check_collide(output_list, ship_name, people_list, min_distance):
+    for i in range(len(output_list) - 1, -1, -1):
+        ship, pp = output_list[i]
+        if ship == ship_name:
+            rad = len(output_list) - i - 1
+            if rad <= min_distance:
+                return True
+        for p in pp:
+            if p in people_list:
+                rad = len(output_list) - i - 1
+                if rad <= min_distance:
+                    return True
+
+def put_to_end(data_list, index):
+    data_list.pop(index)
+    data_list.append(name)
+
 for s, df in sheets.items():
     # data_head = df.head()
     # data_row = df.iloc()
@@ -33,44 +52,26 @@ for s, df in sheets.items():
                           ]
     ship_names = ship_names_first.copy()
     ships_people = ships_people_first.copy()
-    c = len(ship_names)
-    # first_index = random.randint(0, len(ship_names) - 1)
-    cant_use = []
-    pers = 0
-    while len(out) < c:
+    min_rad = 1
+    permutation_count = 0
+    while len(out) < len(ship_names):
         ship_name = ship_names[0]
         people = ships_people[0]
-
         people_list = people.split(";")
-        if pers > len(ship_names):
+        if permutation_count > len(ship_names):
             ship_names = ship_names_first.copy()
             ships_people = ships_people_first.copy()
-            name = ship_names[0]
-            sp = ships_people[0]
-            ship_names.pop(0)
-            ship_names.append(name)
-            ships_people.pop(0)
-            ships_people.append(sp)
-            pers = 0
-        flag = False
-        for i in range(len(out) - 1, -1, -1):
-            ship, pp = out[i]
-            if ship == ship_name:
-                rad = len(out) - i - 1
-                if rad < 2:
-                    ship_names.remove(ship_name)
-                    ship_names.append(ship_name)
-                    ships_people.remove(people)
-                    ships_people.append(people)
-                    flag = True
-                    break
-        if flag:
-            pers += 1
+            put_to_end(ship_names, 0)
+            put_to_end(ships_people, 0)
+            permutation_count = 0
+        is_colliding = check_collide(out, ship_name, people_list, min_rad)
+        if is_colliding:
+            permutation_count += 1
             continue
 
         out.append((ship_name, people_list))
         ship_names.remove(ship_name)
         ships_people.remove(people)
-        pers = 0
+        permutation_count = 0
 
 print(out)
