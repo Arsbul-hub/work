@@ -1,5 +1,4 @@
 import random
-import time
 from tkinter import filedialog, Tk
 
 import pandas as pd
@@ -227,6 +226,10 @@ while run:
         print("Ошибка анализа данных.")
         continue
     try:
+        if not verified_rads:
+            print("ПРОГРАММА НЕ СМОГЛА НАЙТИ НИ ОДНОГО ВАРИАНТА!")
+            print("\n" * 2)
+            continue
         for rad, data in verified_rads.items():
             for ship, people, number in data:
                 if rad not in format_data:
