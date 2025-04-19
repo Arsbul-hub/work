@@ -1,7 +1,13 @@
+import os
 import random
 from tkinter import filedialog, Tk
 
-import pandas as pd
+# import pandas as pd
+import pyexcel as pe
+
+"""
+pyinstaller --noconfirm --onefile --console --hidden-import "pyexcel-xlsx" --hidden-import "pyexcel-xls" --hidden-import "openpyxl" --hidden-import "et-xmlfile" --hidden-import "xlwt" --hidden-import "xlrd" --hidden-import "lml" --hidden-import "pyexcel-io" --hidden-import "texttable" --add-data "C:/Users/arsbu/Desktop/work/.venv/Lib/site-packages/lml;lml/" --add-data "C:/Users/arsbu/Desktop/work/.venv/Lib/site-packages/et_xmlfile;et_xmlfile/" --add-data "C:/Users/arsbu/Desktop/work/.venv/Lib/site-packages/pyexcel;pyexcel/" --add-data "C:/Users/arsbu/Desktop/work/.venv/Lib/site-packages/pyexcel_io;pyexcel_io/" --add-data "C:/Users/arsbu/Desktop/work/.venv/Lib/site-packages/pyexcel_xls;pyexcel_xls/" --add-data "C:/Users/arsbu/Desktop/work/.venv/Lib/site-packages/pyexcel_xlsx;pyexcel_xlsx/" --add-data "C:/Users/arsbu/Desktop/work/.venv/Lib/site-packages/xlrd;xlrd/" --add-data "C:/Users/arsbu/Desktop/work/.venv/Lib/site-packages/xlwt;xlwt/" --hidden-import "urllib" --collect-all "pyexcel" --hidden-import "urllib.request" --hidden-import "pyexcel" --hidden-import "pkgutil" --hidden-import "json" --hidden-import "__future__" --hidden-import "openpyxl" --collect-all "openpyxl" --add-data "C:/Users/arsbu/Desktop/work/.venv/Lib/site-packages/openpyxl;openpyxl/" --hidden-import "xml" --hidden-import "xml.etree" --hidden-import "xml.etree.ElementTree" --collect-all "xml"  "C:/Users/arsbu/Desktop/work/main.py"
+"""
 
 
 def check_collide(output_list, ship_name, people_list, min_distance):
@@ -29,8 +35,8 @@ def put_to_end(data_list, index):
     data_list.append(data_to_put)
 
 
-def process(data):
-    original_data = data.values.tolist()
+def process(original_data):
+    # original_data = data.values.tolist()
 
     data = original_data.copy()
     min_rad = 1
@@ -122,6 +128,7 @@ while run:
     save_dir_path = None
     tabel_list_name = None
     number = None
+    header = None
     while table_filepath is None:
         print("Выберите действие (укажите цифру):")
         print("1 - Открыть файл таблицы")
@@ -148,46 +155,69 @@ while run:
         continue
 
     print()
-    print("Укажите название листа таблицы для анализа")
-    print("Или напишите 'exit' для перезапуска програмы")
-    control = input("Укажите просто название (регистр имеет значение): ")
-    if control:
-        tabel_list_name = control
-        print("Сохранено!")
-    elif control == "exit":
-        print("\n" * 2)
-        continue
-    print()
-    print("Укажите название столбца, где записаны названия суден")
-    print("Или напишите 'exit' для перезапуска програмы")
-    control = input("Укажите просто название (регистр имеет значение): ")
-    if control:
-        ships_column = control
-    elif control == "exit":
-        print("\n" * 2)
-        continue
-    print()
-    print("Укажите название столбца, где записаны имена участников\n"
-          "(Формат данных столбца: разделитель - запятая и пробел, например 'Иван Иванов, Дарья Сергеева, Василий Андреев')")
-    print("Или напишите 'exit' для перезапуска програмы")
-    control = input("Укажите просто название (регистр имеет значение): ")
-    if control:
-        people_column = control
-        print("Сохранено!")
-    elif control == "exit":
-        print("\n" * 2)
-        continue
-    print()
-    print("Укажите название столбца, где записан номер команды")
-    print("Или напишите 'exit' для перезапуска програмы")
-    control = input("Укажите просто название (регистр имеет значение): ")
-    if control:
-        number = control
-        print("Сохранено!")
-    elif control == "exit":
-        print("\n" * 2)
-        continue
-    print()
+    while tabel_list_name is None:
+        print("Укажите название листа таблицы для анализа")
+        print("Или напишите 'exit' для перезапуска програмы")
+        control = input("Укажите просто название (регистр имеет значение): ")
+        if control == "exit":
+            print("\n" * 2)
+            continue
+        else:
+            try:
+                tabel_list_name = control
+                sheet = pe.get_sheet(file_name=table_filepath, sheet_name=tabel_list_name)
+                header = sheet.row[0]
+                print("Сохранено!")
+            except ValueError:
+                print(f"Не удалось найти лист '{control}' в таблице!")
+                print()
+                continue
+            except Exception:
+                print(f"Ошибка открытия таблицы: {str(e)}")
+                print()
+                continue
+
+        print()
+    while ships_column is None:
+        print("Укажите название столбца, где записаны названия суден")
+        print("Или напишите 'exit' для перезапуска програмы")
+        control = input("Укажите просто название (регистр имеет значение): ")
+        if control == "exit":
+            print("\n" * 2)
+            continue
+        if control in header:
+            ships_column = control
+        else:
+            print(f"На листе '{tabel_list_name}' нет колонки '{control}'")
+        print()
+
+    while people_column is None:
+        print("Укажите название столбца, где записаны имена участников\n"
+              "(Формат данных столбца: разделитель - запятая и пробел, например 'Иван Иванов, Дарья Сергеева, Василий Андреев')")
+        print("Или напишите 'exit' для перезапуска програмы")
+        control = input("Укажите просто название (регистр имеет значение): ")
+        if control == "exit":
+            print("\n" * 2)
+            continue
+        if control in header:
+            people_column = control
+            print("Сохранено!")
+        else:
+            print(f"На листе '{tabel_list_name}' нет колонки '{control}'")
+        print()
+    while number is None:
+        print("Укажите название столбца, где записан номер команды")
+        print("Или напишите 'exit' для перезапуска програмы")
+        control = input("Укажите просто название (регистр имеет значение): ")
+        if control == "exit":
+            print("\n" * 2)
+            continue
+        if control in header:
+            number = control
+            print("Сохранено!")
+        else:
+            print(f"На листе '{tabel_list_name}' нет колонки '{control}'")
+        print()
 
     while save_dir_path is None:
         print("Выберите действие (укажите цифру):")
@@ -212,41 +242,64 @@ while run:
     if save_dir_path is None:
         continue
     print("Анализ таблицы....")
-    try:
-        sheets = pd.read_excel(table_filepath, sheet_name=tabel_list_name)
-        data = pd.DataFrame(sheets, columns=[ships_column, people_column, number])
 
-    except:
-        print("Произошла ошибка открытия таблицы (попробуйте закрыть програму, в которой она открыта)")
-        continue
+    # try:
+    #     # Чтение данных с помощью pyexcel
+    #     data = pe.get_array(file_name=table_filepath, sheet_name=tabel_list_name)
+    #
+    #     # Получаем индексы колонок
+    #     header = data[0]
+    #     ship_idx = header.index(ships_column)
+    #     people_idx = header.index(people_column)
+    #     number_idx = header.index(number)
+    #
+    #     # Извлекаем нужные колонки (пропускаем заголовок)
+    #     extracted_data = []
+    #     for row in data[1:]:
+    #         extracted_data.append((row[ship_idx], row[people_idx], row[number_idx]))
+    #
+    # except Exception as e:
+    #     print(f"Произошла ошибка открытия таблицы: {str(e)}")
+    #     print("Попробуйте закрыть программу, в которой она открыта")
+    #     continue
+
     try:
-        verified_rads = process(data)
+        sheet = pe.get_sheet(file_name=table_filepath, sheet_name=tabel_list_name)
+        ship_idx = header.index(ships_column)
+        people_idx = header.index(people_column)
+        number_idx = header.index(number)
+
+        extracted_data = []
+        for row in sheet:
+            if row == header:
+                continue
+            extracted_data.append((row[ship_idx], row[people_idx], row[number_idx]))
+
+    except Exception as e:
+        print(f"Ошибка открытия таблицы: {str(e)}")
+        continue
+
+    try:
+        verified_rads = process(extracted_data)
         format_data = {}
-    except:
-        print("Ошибка анализа данных.")
-        continue
-    try:
+
         if not verified_rads:
             print("ПРОГРАММА НЕ СМОГЛА НАЙТИ НИ ОДНОГО ВАРИАНТА!")
             print("\n" * 2)
             continue
-        for rad, data in verified_rads.items():
-            for ship, people, number in data:
-                if rad not in format_data:
-                    format_data[rad] = []
-                format_data[rad].append((people, ship, number))
+
+        book_dict = {}
+        for rad, items in verified_rads.items():
+            sheet_data = [["Участники", "Судно", "Номер"]]
+            for ship, people, num in items:
+                sheet_data.append([people, ship, num])
+            book_dict[f"Минимальное расстояние - {rad}"] = sheet_data
+
         full_filepath = f"{save_dir_path}/Результат составления протакола {random.randint(0, 1000000)}.xlsx"
-        with pd.ExcelWriter(full_filepath) as writer:
-            for rad, data in format_data.items():
-                df = pd.DataFrame([(p, s, n) for p, s, n in data],
-                                  columns=["Участники", "Судно", "Номер"])
+        pe.save_book_as(bookdict=book_dict, dest_file_name=full_filepath)
 
-                visible = True if min(format_data.keys()) == rad else False
+        print(f"Результат анализа успешно сохранён в файл {full_filepath}")
+        print("#####################\n" * 2)
 
-                df.to_excel(writer, sheet_name=f"Минимальное растояние - {rad}", index=False)
-            print(f"Результат анализа успешно сохранён в файл {full_filepath}")
-            print("#####################\n" * 2)
-    except:
-        print("Ошибка сохранения данных в таблицу")
-        print("\n" * 2)
-        continue
+    except Exception as e:
+        print(f"Ошибка обработки: {str(e)}")

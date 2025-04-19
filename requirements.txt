@@ -1,1 +1,4 @@
-pandas~=2.2.3
+pyexcel~=0.7.3
+pyexcel-xls
+pyexcel-xlsx
+openpyxl
